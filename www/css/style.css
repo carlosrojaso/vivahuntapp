@@ -31,3 +31,8 @@ background-color: #0c9258;
 background-image: transparent;
 color: #fff;
 }
+
+.my-item {
+  left: 0;
+  right: 0;
+}
