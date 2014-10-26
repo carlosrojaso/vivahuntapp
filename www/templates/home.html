@@ -1,0 +1,34 @@
+<ion-view hide-nav-bar="true">
+<ion-header-bar align-title="left" class="bar-positive">
+
+</ion-header-bar>
+
+    <ion-content class="home-content" has-header="false" padding="true" style="height: 100%;">
+
+        <div class="row row-logo">
+            <div class="row responsive-sm" align="center">
+            <img width="75%" style="padding-top:25%" src="img/logo.png" />
+            </div>
+        </div>
+
+        <div class="list list-inset" style="margin-top: 2px;">
+
+            <label class="item item-input">
+                <form novalidate class="simple-form">
+                <input type="text" placeholder="@user" ng-model="username" id="username">
+            </label>
+        </div>
+
+        <div class="row row-buttons">
+            <div class="col">
+                <button class="button button-block button-positive" style="background: #3b5998" ng-click="login2()">
+                Login with Twitter
+            </button>
+        </form>
+            </div>
+        </div>
+
+    </ion-content>
+<ion-footer-bar align-title="left" class="bar-assertive">
+</ion-footer-bar>
+</ion-view>

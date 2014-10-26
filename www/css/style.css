@@ -1,34 +1,104 @@
-/* Empty. Add your own CSS if you like */
-
-.bar.bar-positive {
-border-color: #878787;
-background-color: #0c9258;
+/* Add your own CSS if you like */
+.button {
+    border-radius: 3px;
+    font-weight: bold;
 }
 
-h1.title.ng-binding{
-	color: #0c9258;
+.button.button-positive {
+    background-color: #49B4C0;
+    border-color: #00a1df;
 }
 
-.bar.bar-assertive {
-background-color: #0c9258;
+.button.button-stable{
+    background-color: #49B4C0;
+    border-color: #00a1df;
+    color:#ffffff;
+}
+
+/* home screen */
+.home-content {
+    background-color: #fff;
+    background-size: cover;
+}
+
+.home-content > .scroll {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.home-content h1 {
+    font-size: 64px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.home-content .row-logo {
+    flex-grow: 1;
+}
+
+.home-content .row-buttons {
+    flex-grow: 0;
+}
+
+.home-content .button:last-child {
+    margin-bottom: 0;
+}
+
+.home-content .button.button-light.button-clear {
+border-color: transparent;
+background: none;
+box-shadow: none;
 color: #fff;
-border-color: #878787;
-background-image: transparent;
 }
 
-ion-nav-view{
-	background-color: #fff;
+/* home screen */
+.login-content {
+    background-color: #fff;
+    background-size: cover;
 }
 
-.button.button-positive{
-
-	background-color: #006d8c;
+.register-content {
+    background: url(../img/splash-background.png) no-repeat;
+    background-size: cover;
 }
 
-.tabs-positive > .tabs, .tabs.tabs-positive {
-border-color: #fff;
+.bar.bar-stable{
+border-color: #b2b2b2;
 background-color: #0c9258;
-background-image: transparent;
+background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);
+color: #ffffff;
+}
+
+.bar-stable .button.button-clear {
+border-color: transparent;
+background: none;
+box-shadow: none;
+color: #fff;
+font-size: 17px;
+}
+
+.bar.bar-stable .title {
+color: #fff;
+}
+
+.back-button{
+color: #fff;
+}
+
+.card, .list-inset {
+overflow: hidden;
+margin: 20px 10px;
+border-radius: 2px;
+background-color: transparent;
+}
+
+.button-icon, .icon, .ion-ios7-arrow-back, .button, .back-button{
+color: #fff;
+}
+
+.bar-stable .button{
 color: #fff;
 }
 
@@ -36,3 +106,85 @@ color: #fff;
   left: 0;
   right: 0;
 }
+
+.item{
+  border-color: #006d8c;
+  background-color: #fff;
+  color: #444;
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin: -1;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 16px;
+
+  /*height: 5em;
+  top:20px;
+  padding:0;
+  border-color: #49B4C0;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 16px;*/
+
+}
+
+/*.item h2{
+
+  padding: 30px 0px 30px 70px;
+}
+
+a {
+  text-decoration: none;
+
+}
+
+a h2 {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}*/
+
+.profile-img{
+  position: fixed;
+  float: right;
+  top: 20px;
+}
+
+.step-text{
+  margin-top: 50px;
+  padding: 20px;
+  font-family: "Helvetica";
+  font-weight: ligther;
+  line-height: 1.5em;
+  font-size: 1em;
+
+}
+
+.text-from-form {
+  border-bottom: 2px dotted #49B4C0;
+
+}
+
+.question {
+  font-weight:bold;
+  color:#49B4C0;
+
+}
+
+.button-block{
+
+  background-color: #006d8c;
+}
+
+.bar.bar-positive{
+  background-color: #0c9258;
+}
+.bar.bar-assertive {
+background-color: #0c9258;
+color: #fff;
+border-color: #878787;
+background-image: transparent;
+}
+

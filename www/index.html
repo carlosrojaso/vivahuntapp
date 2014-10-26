@@ -1,176 +1,48 @@
-<html ng-app="ionicApp">
+<!DOCTYPE html>
+<html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    
-    <title>Side Menus</title>
+    <title></title>
 
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
 
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <link href="css/ionic.app.css" rel="stylesheet">
+    -->
+
     <!-- ionic/angularjs js -->
     <script src="lib/ionic/js/ionic.bundle.js"></script>
-    <script src="lib/jsOAuth-1.3.6.js"></script>
+    <script src="lib/ionic/js/angular/angular-resource.js"></script>
 
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
 
     <!-- your app's js -->
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="js/forceng.js"></script>
     <script src="js/app.js"></script>
     <script src="js/controllers.js"></script>
     <script src="js/services.js"></script>
+    <script src="lib/openfb.js"></script>
   </head>
- 
-   <body>
-    
-    <ion-nav-bar class="bar-positive nav-title-slide-ios7">
+  <body ng-app="starter" animation="slide-left-right-ios7" ng-controller="AppCtrl">
+    <!--
+      The nav bar that will be updated as we navigate between views.
+    -->
+    <ion-nav-bar class="bar-stable nav-title-slide-ios7">
     </ion-nav-bar>
-             
-    <ion-nav-view animation="slide-left-right"></ion-nav-view>
 
-    <script id="templates/sign-in.html" type="text/ng-template">
-    <ion-header-bar align-title="center" class="bar-positive">
-  </div>
-</ion-header-bar>
-        <ion-content>
-          <div align="center" class="list" style="height:30%; padding:20%"><img src="img/logo.png"/></div>
-          <div class="list">
-            <label class="item item-input">
-              <span class="input-label">@username</span>
-              <input type="text" ng-model="user.username">
-            </label>
-          </div>
-          <div class="padding">
-            <button class="button button-block button-positive" ng-click="signIn(user)">
-              Sign-In
-            </button>
-          </div>
-        </ion-content>
-      <ion-footer-bar class="bar-assertive text-center">
-        <div align="text-center">VivaHunt LLC 2014</div>
-      </ion-footer-bar>
-    </script>
+    <ion-nav-buttons side="right">
+    <button class="button button-clear" ng-click="logout()"><img src="http://avatars.io/twitter/carlosrojas_o"></button>
+    </ion-nav-buttons>
 
-
-    
-    <script id="templates/tabs.html" type="text/ng-template">
-
-      <ion-view>
-        <ion-tabs class="tabs-icon-top tabs-positive">
-
-          <ion-tab title="Home" icon="ion-home" href="#/tab/home">
-            <ion-nav-view name="home-tab"></ion-nav-view>
-          </ion-tab>
-
-          <ion-tab title="About" icon="ion-ios7-information" href="#/tab/about">
-            <ion-nav-view name="about-tab"></ion-nav-view>
-          </ion-tab>
-
-          <ion-tab title="Sign-Out" icon="ion-log-out" href="#/sign-in">
-          </ion-tab>
-
-        </ion-tabs>
-      </ion-view>
-    </script>
-
-    <script id="templates/home.html" type="text/ng-template">
-
-     <ion-side-menus>
-        
-        <ion-side-menu-content>
-          <ion-nav-bar class="bar-positive"animation="no-animation">
-            <ion-nav-back-button class="button-icon ion-arrow-left-c">
-            </ion-nav-back-button>
-          </ion-nav-bar>
-          <ion-nav-buttons side="left">
-            <button class="button button-icon button-clear ion-navicon" ng-click="toggleLeft()">
-            </button>
-          </ion-nav-buttons>
-          <ion-nav-view animation="no-animation" name="menuContent"></ion-nav-view>
-        </ion-side-menu-content> 
-        
-        <ion-side-menu side="left">
-          <ion-header-bar class="bar-assertive">
-            <h1 class="title">Left Menu</h1>
-          </ion-header-bar>
-          <ion-content>
-            <ul class="list">
-              <!-- Note each link has the 'menu-close' attribute so the menu auto closes when clicking on one of these links -->
-              <a href="#/event/check-in" class="item" menu-close>Check-in</a>
-              <a href="#/event/attendees" class="item" menu-close>Attendees</a>
-            </ul>
-          </ion-content>
-        </ion-side-menu>
-        
-      </ion-side-menus>
-      <ion-view title="Home">
-        <ion-content ng-controller="HomeTabCtrl">
-          <div class="list">
-          <div class="item my-item"
-            collection-repeat="item in items"
-            collection-item-width="'100%'"
-            collection-item-height="getItemHeight(item, $index)"
-            ng-style="{height: getItemHeight(item, $index)}">
-            {{item}}
-          </div>
-        </div>
-        </ion-content>
-      </ion-view>
-    </script>
-
-    <script id="templates/facts.html" type="text/ng-template">
-      <ion-view title="Facts">
-        <ion-content padding="true">
-          <p>Banging your head against a wall uses 150 calories an hour.</p>
-          <p>Dogs have four toes on their hind feet, and five on their front feet.</p>
-          <p>The ant can lift 50 times its own weight, can pull 30 times its own weight and always falls over on its right side when intoxicated.</p>
-          <p>A cockroach will live nine days without it's head, before it starves to death.</p>
-          <p>Polar bears are left handed.</p>
-          <p>
-            <a class="button icon ion-home" href="#/tab/home"> Home</a>
-            <a class="button icon icon-right ion-chevron-right" href="#/tab/facts2">More Facts</a>
-          </p>
-        </ion-content>
-      </ion-view>
-    </script> 
-
-    <script id="templates/facts2.html" type="text/ng-template">
-      <ion-view title="Also Factual">
-        <ion-content padding="true">
-          <p>111,111,111 x 111,111,111 = 12,345,678,987,654,321</p>
-          <p>1 in every 4 Americans has appeared on T.V.</p>
-          <p>11% of the world is left-handed.</p>
-          <p>1 in 8 Americans has worked at a McDonalds restaurant.</p>
-          <p>$283,200 is the absolute highest amount of money you can win on Jeopardy.</p>
-          <p>101 Dalmatians, Peter Pan, Lady and the Tramp, and Mulan are the only Disney cartoons where both parents are present and don't die throughout the movie.</p>
-          <p>
-            <a class="button icon ion-home" href="#/tab/home"> Home</a>
-            <a class="button icon ion-chevron-left" href="#/tab/facts"> Scientific Facts</a>
-          </p>
-        </ion-content>
-      </ion-view>
-    </script>
-
-    <script id="templates/about.html" type="text/ng-template">
-      <ion-view title="About">
-        <ion-content padding="true">
-          <h3>Create hybrid mobile apps with the web technologies you love.</h3>
-          <p>Free and open source, Ionic offers a library of mobile-optimized HTML, CSS and JS components for building highly interactive apps.</p>
-          <p>Built with Sass and optimized for AngularJS.</p>
-          <p>
-            <a class="button icon icon-right ion-chevron-right" href="#/tab/navstack">Tabs Nav Stack</a>
-          </p>
-        </ion-content>
-      </ion-view>
-    </script>
-
-    <script id="templates/nav-stack.html" type="text/ng-template">
-      <ion-view title="Tab Nav Stack">
-        <ion-content padding="true">
-          <p><img src="http://ionicframework.com/img/diagrams/tabs-nav-stack.png" style="width:100%"></p>
-        </ion-content>
-      </ion-view>
-    </script>
-
+    <!--
+      The views will be rendered in the <ion-nav-view> directive below
+      Templates are in the /templates folder (but you could also
+      have templates inline in this html file if you'd like).
+    -->
+    <ion-nav-view></ion-nav-view>
   </body>
 </html>

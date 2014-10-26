@@ -1,305 +1,158 @@
-angular.module('twitterLib', [])
+angular.module('starter.services', [])
 
-    .factory('TwitterLib', function ($rootScope, $q, $window, $http, myAppConfig) {
-
-        // GLOBAL VARS
-
-        var runningInCordova = false;
-        var loginWindow;
+.factory('SocketIO', function() {
+  return io();
+})
 
 
-        // Construct the callback URL fro when running in browser
-        var index = document.location.href.indexOf('index.html');
-        var callbackURL = document.location.href.substring(0, index) + 'oauthcallback.html';
+.factory('Question', function($resource) {
+  return $resource('/resource/questions/:questionId', null, {
+    'activate': {
+      method: 'POST',
+      url: '/resource/questions/:questionId/activate'
+    },
+    'next': {
+      method: 'POST',
+      url: '/resource/questions/:questionId/next'
+    }
+  });
+})
 
-        var oauth;
+.factory('Answer', function($resource) {
+  return $resource('/resource/answers/:answerId', null, {
+    'leaders': {
+      method: 'GET',
+      url: '/resource/leaders',
+      isArray: true
+    },
+    'truncate': {
+      method: 'DELETE',
+      url: '/resource/leaders'
+    }
+  });
+})
 
-        // YOUR Twitter CONSUMER_KEY, Twitter CONSUMER_SECRET
-        var options;
 
-        options = angular.extend({}, myAppConfig.oauthSettings);
-        options = angular.extend(options, {
-            callbackUrl: callbackURL
+.factory('AuthenticationService', function() {
+  var auth = {
+    isAuthenticated: false,
+    isAdmin: false
+  }
+
+  return auth;
+})
+
+.factory('TokenInterceptor', function($q, $window, $location, AuthenticationService) {
+  return {
+    request: function(config) {
+      config.headers = config.headers || {};
+      if ($window.localStorage.token) {
+        config.headers.Authorization = 'Bearer ' + $window.localStorage.token;
+      }
+      return config;
+    },
+
+    requestError: function(rejection) {
+      return $q.reject(rejection);
+    },
+
+    /* Set Authentication.isAuthenticated to true if 200 received */
+    response: function(response) {
+      if (response != null && response.status == 200 && $window.localStorage.token && !AuthenticationService.isAuthenticated) {
+        AuthenticationService.isAuthenticated = true;
+      }
+      return response || $q.when(response);
+    },
+
+    /* Revoke client authentication if 401 is received */
+    responseError: function(rejection) {
+      if (rejection != null && rejection.status === 401 && ($window.localStorage.token || AuthenticationService.isAuthenticated)) {
+        delete $window.localStorage.token;
+        AuthenticationService.isAuthenticated = false;
+        $location.path("/register");
+      }
+
+      return $q.reject(rejection);
+    }
+  };
+})
+
+.factory('RegistrationService', function($window, $http, $ionicPopup, $rootScope, AuthenticationService) {
+  return {
+    login: function(email, password) {
+      return $http.post('/login', {
+        email: email,
+        password: password
+      }).then(function(result) {
+        $rootScope.user = result.data;
+        console.log(result.data);
+        AuthenticationService.isAuthenticated = true;
+        AuthenticationService.isAdmin = result.data.is_admin;
+
+        $window.sessionStorage.name     = result.data.name;
+        $window.sessionStorage.is_admin = result.data.is_admin;
+        $window.localStorage.token      = result.data.token;
+      }).catch(function(err) {
+        $ionicPopup.alert({
+          title: 'Failed',
+          content: err.data
         });
+      });;
+    },
 
-        // YOU have to replace it on one more PlaceÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â 
-        var twitterKey = "gcxwmUud9aD1zEXVfhxa2BpEb"; // This key is used for storing Information related
+    logout: function() {
+      delete $window.localStorage.token;
+    },
 
+    register: function(user) {
+      return $http.post('/register', user).then(function(result) {
+        $rootScope.user = result.data;
+        AuthenticationService.isAuthenticated = true;
+        $window.sessionStorage.name     = result.data.name;
+        $window.sessionStorage.is_admin = result.data.is_admin;
+        $window.localStorage.token      = result.data.token;
+        console.log(result.data);
+      }).catch(function(err) {
+        $ionicPopup.alert({
+          title: 'Failed',
+          content: err.data
+        });
+      });
+    }
+  }
+})
 
-        // used to check if we are running in phonegap/cordova
-        $window.document.addEventListener("deviceready", function () {
-            runningInCordova = true;
+.factory('UserResponse', function() {
+  var storageKey = 'userResponses';
 
-            callbackURL = myAppConfig.oauthSettings.callbackUrl;
-            options.callbackUrl = callbackURL;
-        }, false);
+  var localGet = function() {
+    var ret = localStorage.getItem(storageKey);
+    if (ret === null) {
+      ret = {};
+    } else {
+      ret = JSON.parse(ret);
+    }
+    return ret;
+  };
 
+  var localSet = function(val) {
+    localStorage.setItem(storageKey, JSON.stringify(val));
+  };
 
-        function byteArrayToString(byteArray) {
-            var string = '', l = byteArray.length, i;
-            for (i = 0; i < l; i++) {
-                string += String.fromCharCode(byteArray[i]);
-            }
-            return string;
-        }
+  return {
+    set: function(key, value) {
+      var answers = localGet();
+      answers[key] = value;
+      localSet(answers);
+    },
 
-        var Twitter = {
-                init: function () {
+    get: function(key) {
+      var answers = localGet();
+      return answers[key];
+    },
 
-                    var deferredLogin = $q.defer();
-
-                    /**
-                     *  the event handler for processing load events for the oauth
-                     *  process
-                     *
-                     * @param event
-                     */
-                    var doLoadstart = function (event) {
-                        console.log("in doLoadstart " + event.url);
-                        var url = event.url;
-                        Twitter.inAppBrowserLoadHandler(url, deferredLogin);
-                    };
-
-                    /**
-                     *  the event handler for processing exit events for the oauth
-                     *  process
-                     *
-                     * @param event
-                     */
-                    var doExit = function (event) {
-                        // Handle the situation where the user closes the login window manually
-                        // before completing the login process
-                        console.log(JSON.stringify(event));
-                        deferredLogin.reject({error: 'user_cancelled',
-                            error_description: 'User cancelled login process',
-                            error_reason: "user_cancelled"
-                        });
-                    };
-
-                    var openAuthoriseWindow = function (_url) {
-
-                        loginWindow = $window.open(_url, '_blank', 'location=no');
-
-                        if (runningInCordova) {
-                            loginWindow.addEventListener('loadstart', doLoadstart);
-
-                        } else {
-                            // this saves the promise value in the window when running in the browser
-                            window.deferredLogin = deferredLogin;
-                        }
-                    };
-
-                    var failureHandler = function () {
-                        console.log("ERROR: " + JSON.stringify(error));
-                        deferredLogin.reject({error: 'user_cancelled', error_description: error });
-                    };
-
-                    // Apps storedAccessData , Apps Data in Raw format
-                    var storedAccessData, rawData = localStorage.getItem(twitterKey);
-                    // here we are going to check whether the data about user is already with us.
-                    if (localStorage.getItem(twitterKey) !== null) {
-
-                        Twitter.verify(deferredLogin);
-
-                    } else {
-                        // we have no data for save user
-                        oauth = OAuth(options);
-                        oauth.fetchRequestToken(openAuthoriseWindow, failureHandler);
-                    }
-
-                    return deferredLogin.promise;
-                },
-                /**
-                 * Â When inAppBrowser's URL changes we will track it here.
-                 * Â We will also be acknowledged was the request is a successful or unsuccessful
-                 *
-                 @param _url url received from the event
-                 @param _deferred promise associated with login process
-                 */
-                inAppBrowserLoadHandler: function (_url, _deferred) {
-
-                    // this gets the promise value from the window when running in the browser
-                    _deferred = _deferred || window.deferredLogin;
-
-
-                    /**
-                     *
-                     * @param _args
-                     */
-                    var successHandler = function (_args) {
-                        console.log(_args);
-                        // Saving token of access in Local_Storage
-                        var accessData = {};
-                        accessData.accessTokenKey = oauth.getAccessToken()[0];
-                        accessData.accessTokenSecret = oauth.getAccessToken()[1];
-
-                        // Configuring Apps LOCAL_STORAGE
-                        console.log("TWITTER: Storing token key/secret in localStorage");
-                        $window.localStorage.setItem(twitterKey, JSON.stringify(accessData));
-
-                        Twitter.verify(deferredLogin);
-
-                    };
-
-                    /**
-                     *
-                     * @param _args
-                     */
-                    var failureHandler = function (_args) {
-                        console.log("ERROR - oauth_verifier: " + JSON.stringify(_args));
-                        _deferred.reject({error: 'user_cancelled', error_description: _args });
-                    };
-
-                    console.log("callbackURL " + callbackURL);
-
-                    if (_url.indexOf(callbackURL + "?") >= 0) {
-
-                        loginWindow.close();
-
-                        // Parse the returned URL
-                        var params, verifier = '';
-                        params = _url.substr(_url.indexOf('?') + 1);
-
-                        params = params.split('&');
-                        for (var i = 0; i < params.length; i++) {
-                            var y = params[i].split('=');
-                            if (y[0] === 'oauth_verifier') {
-                                verifier = y[1];
-                            }
-                        }
-                        oauth.setVerifier(verifier);
-                        oauth.fetchAccessToken(successHandler, failureHandler);
-                    } else {
-                        // Just Empty
-                    }
-                },
-                /**
-                 * this will verify the user and store the credentials if needed
-                 *
-                 */
-                verify: function (_deferred) {
-                    var deferred = _deferred || $q.defer();
-                    var storedAccessData, rawData = localStorage.getItem(twitterKey);
-                    storedAccessData = JSON.parse(rawData);
-
-                    // javascript OAuth will care of else for app we need to send only the options
-                    oauth = oauth || OAuth(options);
-
-                    oauth.setAccessToken([storedAccessData.accessTokenKey, storedAccessData.accessTokenSecret]);
-
-                    oauth.get('https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true',
-                        function (data) {
-                            console.log("in verify resolved " + data.text);
-                            deferred.resolve(JSON.parse(data.text));
-                        }, function (_error) {
-                            console.log("in verify reject " + _error);
-                            deferred.reject(JSON.parse(_error));
-                        }
-                    );
-                    return deferred.promise;
-                },
-                /**
-                 * this will verify the user and send a tweet
-                 *
-                 * @param _message
-                 */
-                tweet: function (_message, _media) {
-
-                    var deferred = $q.defer();
-                    return deferred.promise
-                        .then(Twitter.verify().then(function () {
-                                console.log("in tweet verified success");
-
-                                tUrl = 'https://api.twitter.com/1.1/statuses/update.json';
-                                tParams = {
-                                    'status': _message,
-                                    'trim_user': 'true'
-                                };
-                                return Twitter.apiPostCall({
-                                    url: tUrl,
-                                    params: tParams
-                                });
-
-                            }, function (_error) {
-                                deferred.reject(JSON.parse(_error.text));
-                                console.log("in tweet " + _error.text);
-                            }
-                        )
-                    );
-                },
-                /**
-                 * uses oAuth library to make a GET call
-                 *
-                 * @param _options.url
-                 * @param _options.params
-                 */
-                apiGetCall: function (_options) {
-                    var deferred = $q.defer();
-
-                    // javascript OAuth will care of else for app we need to send only the options
-                    oauth = oauth || OAuth(options);
-
-                    var _reqOptions = angular.extend({}, _options);
-                    _reqOptions = angular.extend(_reqOptions, {
-                        success: function (data) {
-                            deferred.resolve(JSON.parse(data.text));
-                        },
-                        failure: function (error) {
-                            deferred.reject(JSON.parse(error.text));
-                        }
-                    });
-
-                    oauth.request(_reqOptions);
-                    return deferred.promise;
-                },
-                /**
-                 * uses oAuth library to make a POST call
-                 *
-                 * @param _options.url
-                 * @param _options.params
-                 */
-                apiPostCall: function (_options) {
-                    var deferred = $q.defer();
-
-                    oauth = oauth || OAuth(options);
-
-                    oauth.post(_options.url, _options.params,
-                        function (data) {
-                            deferred.resolve(JSON.parse(data.text));
-                        },
-                        function (error) {
-                            console.log("in apiPostCall reject " + error.text);
-                            deferred.reject(JSON.parse(error.text));
-                        }
-                    );
-                    return deferred.promise;
-                },
-                /**
-                 * clear out the tokens stored in local storage
-                 */
-                logOut: function () {
-                    window.localStorage.removeItem(twitterKey);
-                    options.accessTokenKey = null;
-                    options.accessTokenSecret = null;
-                    console.log("Please authenticate to use this app");
-                }
-
-            }
-            ;
-
-        return Twitter;
-
-    })
-;
-
-/**
- * @see oauthcallback.html for additional information
- *
- * @param url
- */
-function oauthCallback(url) {
-    var injector = angular.element(document.getElementById('main')).injector();
-    injector.invoke(function (TwitterLib) {
-        TwitterLib.inAppBrowserLoadHandler(url, false);
-    });
-}
+    reset: function() {
+      localStorage.removeItem(storageKey);
+    }
+  };
+})
